@@ -356,7 +356,7 @@ class AlvaHmm(object):
                 real_chain_yy_list.append(seed_node_yy[i])
             ### real_chain (continuous chain) +++
         ####
-        real_chain_ii = np.array(real_chain_ii_list)
+        real_chain_ii = np.array(real_chain_ii_list, dtype=object)
         real_chain_aa = np.array(real_chain_aa_list)
         real_chain_xx = np.array(real_chain_xx_list)
         real_chain_yy = np.array(real_chain_yy_list)
