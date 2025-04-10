@@ -12,7 +12,7 @@ author: Alvason Zhenhua Li
 date:   from 01/13/2017 to 02/27/2018
 Home-made machinery
 '''
-### 02/27/2018, updated for pair_seed and AlvaHmm_class 
+### 02/27/2018, updated for pair_seed and AlvaHmm_class
 ### 02/21/2018, updated for normalized_image
 ############################################
 ### open_package +++
@@ -40,12 +40,12 @@ date:   02/27/2018
 Home-made machinery
 '''
 class AlvaHmm(object):
-    def __init__(cell, 
+    def __init__(cell,
                  likelihood_mmm, #image
                  total_node = None, #nodes of HMM_chain
                  total_path = None, #possible paths of each node
                  node_r = None, #radial_distance between nodes
-                 node_angle_max = None, #maximum searching_angle_range between starting and ending node_path 
+                 node_angle_max = None, #maximum searching_angle_range between starting and ending node_path
                 ):
         ###
         if likelihood_mmm.min() < 0 or likelihood_mmm.max() > 1:
@@ -72,7 +72,7 @@ class AlvaHmm(object):
         ### possible paths starting from seed +++
         ### setting 8x paths is good enough for practical cases
         ### additional 1 in (1+8x) is for symmetric computation: angle_range / (total_seed_path -1)
-        cell.total_path_seed = int(1 + 8 + 8 * np.floor(total_path / 8)) 
+        cell.total_path_seed = int(1 + 8 + 8 * np.floor(total_path / 8))
         ### possible paths starting from seed ---
     ###
     def _prob_sum_state(cell, x0, y0, node_angle):
@@ -80,7 +80,7 @@ class AlvaHmm(object):
         total_pixel_y, total_pixel_x = cell.mmm.shape
         ### image_size ---
         x1 = int(cell.node_r * np.cos(node_angle) + x0)
-        y1 = int(cell.node_r * np.sin(node_angle) + y0)   
+        y1 = int(cell.node_r * np.sin(node_angle) + y0)
         ###
         if (y1 < 0 or y1 >= total_pixel_y - 1 or             x1 < 0 or x1 >= total_pixel_x - 1 or             y0 < 0 or y0 >= total_pixel_y - 1 or             x0 < 0 or x0 >= total_pixel_x - 1):
             prob = -np.inf
@@ -98,18 +98,18 @@ class AlvaHmm(object):
                     prob = prob + np.log(cell.mmm[ry, rx] * 255)
         ###
         return (prob, x1, y1)
-    #########################  
+    #########################
     ###
     def _node_link_intensity(cell, node_A, node_B):
         ### image_size +++
         total_pixel_y, total_pixel_x = cell.mmm.shape
         ### image_size ---
         ### np.int64() is making sure is int because it is used for pixel_index of mmm
-        node_A_x, node_A_y = np.int64(node_A) 
+        node_A_x, node_A_y = np.int64(node_A)
         node_B_x, node_B_y = np.int64(node_B)
         ###
-        ox = (node_B_x - node_A_x) 
-        oy = (node_B_y - node_A_y) 
+        ox = (node_B_x - node_A_x)
+        oy = (node_B_y - node_A_y)
         link_r = int((ox * ox + oy * oy)**(0.5))
         link_zone = []
         link_path = []
@@ -122,7 +122,7 @@ class AlvaHmm(object):
                 zn_yn = int(ox * zn / link_r)
             except:
                 zn_yn = 0
-            ### 
+            ###
             for rn in range(link_r):
                 link_xn = int(node_A_x + ox * (rn / link_r)) + zn_xn
                 link_yn = int(node_A_y + oy * (rn / link_r)) + zn_yn
@@ -130,7 +130,7 @@ class AlvaHmm(object):
                 if link_xn < 0:
                     link_xn = 0
                 if link_xn >= total_pixel_x:
-                    link_xn = total_pixel_x - 1       
+                    link_xn = total_pixel_x - 1
                 if link_yn < 0:
                     link_yn = 0
                 if link_yn >= total_pixel_y:
@@ -144,15 +144,15 @@ class AlvaHmm(object):
         zone_median = np.median(link_zone)
         ###
         link_mean = np.mean(link_path)
-        return (link_mean, zone_median) 
+        return (link_mean, zone_median)
     ###################################
     ###
     def node_HMM_path(cell,
-                      seed_x, 
-                      seed_y, 
+                      seed_x,
+                      seed_y,
                       seed_angle = None, #seed_angle of the starting seed_path
                       seed_angle_max = None, #maximum angle_range between ending seed_path(-ending, starting, +ending)
-                     ): 
+                     ):
         ###
         if seed_angle is None:
             seed_angle = 0
@@ -173,7 +173,7 @@ class AlvaHmm(object):
         node_path_xx = np.zeros([cell.total_node, cell.total_path], dtype = np.int64)
         node_path_yy = np.zeros([cell.total_node, cell.total_path], dtype = np.int64)
         node_path_pp = np.zeros([cell.total_node, cell.total_path], dtype = np.float64)
-        ### 
+        ###
         node_path_path0max = np.zeros([cell.total_node, cell.total_path], dtype = np.int64)
         ### node_path ---
         ### node_path_path0 +++
@@ -187,7 +187,7 @@ class AlvaHmm(object):
         ####################################################
         ### setting initial present_node_0 +++
         ### for every path_Pn
-        Nn = 0 
+        Nn = 0
         ### seed_path +++
         ###
         node_path_path0_aa_seed = np.zeros([cell.total_path_seed], dtype = np.float64)
@@ -198,17 +198,17 @@ class AlvaHmm(object):
         ### seed_path in symmetric distribution of all directions (part or whole 360_degree) +++
         dAngle_seed = seed_angle_max / (cell.total_path_seed - 1)
         ###
-        for Pn in range(cell.total_path_seed): 
+        for Pn in range(cell.total_path_seed):
             node_angle = (Pn * dAngle_seed) + (seed_angle - seed_angle_max / 2)
             ###
-            prob, x1, y1 = cell._prob_sum_state(seed_x, 
+            prob, x1, y1 = cell._prob_sum_state(seed_x,
                                                 seed_y,
                                                 node_angle)
             ###
-            node_path_path0_aa_seed[Pn] = node_angle   
-            node_path_path0_xx_seed[Pn] = x1 
-            node_path_path0_yy_seed[Pn] = y1     
-            node_path_path0_pp_seed[Pn] = prob    
+            node_path_path0_aa_seed[Pn] = node_angle
+            node_path_path0_xx_seed[Pn] = x1
+            node_path_path0_yy_seed[Pn] = y1
+            node_path_path0_pp_seed[Pn] = prob
             ###
         top_path_from_seed = np.argsort(node_path_path0_pp_seed)[-cell.total_path:]
         ### seed_path in symmetric distribution of all directions (part or whole 360_degree) ---
@@ -217,60 +217,60 @@ class AlvaHmm(object):
             Pn_now = 0
             ###
             node_path_path0_aa[Nn, Pn, Pn_now] = node_path_path0_aa_seed[Pn_seed]
-            node_path_path0_xx[Nn, Pn, Pn_now] = node_path_path0_xx_seed[Pn_seed] 
-            node_path_path0_yy[Nn, Pn, Pn_now] = node_path_path0_yy_seed[Pn_seed]    
-            node_path_path0_pp[Nn, Pn, Pn_now] = node_path_path0_pp_seed[Pn_seed]      
+            node_path_path0_xx[Nn, Pn, Pn_now] = node_path_path0_xx_seed[Pn_seed]
+            node_path_path0_yy[Nn, Pn, Pn_now] = node_path_path0_yy_seed[Pn_seed]
+            node_path_path0_pp[Nn, Pn, Pn_now] = node_path_path0_pp_seed[Pn_seed]
             ###
             Pn_now_max = np.argmax(node_path_path0_pp[Nn, Pn, :])
-            node_path_path0max[Nn, Pn] = Pn_now_max       
-            ###  
+            node_path_path0max[Nn, Pn] = Pn_now_max
+            ###
             node_path_aa[Nn, Pn] = node_path_path0_aa[Nn, Pn, Pn_now_max]
             node_path_xx[Nn, Pn] = node_path_path0_xx[Nn, Pn, Pn_now_max]
             node_path_yy[Nn, Pn] = node_path_path0_yy[Nn, Pn, Pn_now_max]
-            node_path_pp[Nn, Pn] = node_path_path0_pp[Nn, Pn, Pn_now_max] 
+            node_path_pp[Nn, Pn] = node_path_path0_pp[Nn, Pn, Pn_now_max]
         ###
-        node_aa[0] = seed_angle 
+        node_aa[0] = seed_angle
         node_xx[0] = seed_x
-        node_yy[0] = seed_y    
+        node_yy[0] = seed_y
         ### setting initial present_node_0 ---
         ### future_node +++
         for Nn in range(1, cell.total_node):
             ###
             Nn_now = Nn - 1
             ### for every path_Pn
-            for Pn in range(cell.total_path): 
+            for Pn in range(cell.total_path):
                 ### for every path_state_Sn
-                for Pn_now in range(cell.total_path): 
+                for Pn_now in range(cell.total_path):
                     Pn_now_max = node_path_path0max[Nn_now, Pn_now]
-                    node_angle = (node_path_path0_aa[Nn_now, Pn_now, Pn_now_max] 
-                                  - cell.node_angle_max / 2) + (Pn * dAngle) 
-                    prob, x1, y1 = cell._prob_sum_state(node_path_path0_xx[Nn_now, Pn_now, Pn_now_max], 
+                    node_angle = (node_path_path0_aa[Nn_now, Pn_now, Pn_now_max]
+                                  - cell.node_angle_max / 2) + (Pn * dAngle)
+                    prob, x1, y1 = cell._prob_sum_state(node_path_path0_xx[Nn_now, Pn_now, Pn_now_max],
                                                         node_path_path0_yy[Nn_now, Pn_now, Pn_now_max],
                                                         node_angle)
                     ###
-                    node_path_path0_aa[Nn, Pn, Pn_now] = node_angle   
+                    node_path_path0_aa[Nn, Pn, Pn_now] = node_angle
                     node_path_path0_xx[Nn, Pn, Pn_now] = x1
                     node_path_path0_yy[Nn, Pn, Pn_now] = y1
                     node_path_path0_pp[Nn, Pn, Pn_now] = node_path_path0_pp[Nn_now, Pn_now, Pn_now_max] + prob
                 ###
-                Pn_now_max = np.argmax(node_path_path0_pp[Nn, Pn, :])      
-                node_path_path0max[Nn, Pn] = Pn_now_max   
-                ###  
+                Pn_now_max = np.argmax(node_path_path0_pp[Nn, Pn, :])
+                node_path_path0max[Nn, Pn] = Pn_now_max
+                ###
                 node_path_aa[Nn, Pn] = node_path_path0_aa[Nn, Pn, Pn_now_max]
                 node_path_xx[Nn, Pn] = node_path_path0_xx[Nn, Pn, Pn_now_max]
-                node_path_yy[Nn, Pn] = node_path_path0_yy[Nn, Pn, Pn_now_max]  
+                node_path_yy[Nn, Pn] = node_path_path0_yy[Nn, Pn, Pn_now_max]
                 node_path_pp[Nn, Pn] = node_path_path0_pp[Nn, Pn, Pn_now_max]
             ###
-        ### 
-        ### 
+        ###
+        ###
         for Nn in np.arange(cell.total_node - 1, 0, -1):
             Nn_now = Nn - 1
             if Nn == cell.total_node - 1:
                 Pn_max = np.argmax(node_path_pp[Nn, :])
             else:
                 Pn_max = Pn_max_Pn_now_max
-            ### 
-            Pn_max_Pn_now_max = node_path_path0max[Nn, Pn_max] 
+            ###
+            Pn_max_Pn_now_max = node_path_path0max[Nn, Pn_max]
             ###
             node_aa[Nn] = node_path_aa[Nn_now, Pn_max_Pn_now_max]
             node_xx[Nn] = node_path_xx[Nn_now, Pn_max_Pn_now_max]
@@ -315,7 +315,7 @@ class AlvaHmm(object):
             seed_x = seed_xx[i]
             seed_y = seed_yy[i]
             #############################
-            node_HMM = cell.node_HMM_path(seed_x, 
+            node_HMM = cell.node_HMM_path(seed_x,
                                           seed_y,
                                           seed_angle = seed_a,
                                           seed_angle_max = seed_angle_max,
@@ -387,7 +387,7 @@ class AlvaHmm(object):
         pair_seed_xx = []
         pair_seed_yy = []
         for ri in range(real_chain_ii.shape[0]):
-            chain_aa = real_chain_aa[ri][real_chain_ii[ri]] 
+            chain_aa = real_chain_aa[ri][real_chain_ii[ri]]
             if len(chain_aa) >= 2:
                 pair_seed_aa.append(chain_aa[1] + 180 * (np.pi / 180)) #opposite direction (180 degree difference)
                 chain_xx = real_chain_xx[ri][real_chain_ii[ri]]
@@ -401,7 +401,7 @@ class AlvaHmm(object):
         pair_chain_HMM = cell.chain_HMM_node(pair_seed_xx,
                                              pair_seed_yy,
                                              seed_aa = pair_seed_aa,
-                                             seed_angle_max = seed_angle_max, 
+                                             seed_angle_max = seed_angle_max,
                                              chain_level = chain_level,
                                             )
         ### secondary chain ---
@@ -428,17 +428,19 @@ class AlvaHmm(object):
         for i in range(len(point_xx) - 1):
             dx = point_xx[i+1] - point_xx[i]
             dy = point_yy[i+1] - point_yy[i]
-            if (dx == 0): 
-                dy = point_yy[i+1] - point_yy[i] 
-                step_size = dy / point_r 
-                step_list = np.arange(0, dy, step_size)
-                step_dy = point_yy[i] + np.array(step_list, dtype = np.int64) 
-                step_dx = point_xx[i] + np.zeros(point_r, dtype = np.int64) 
+            if (dx == 0):
+                # Handle vertical line (dx = 0)
+                step_size = abs(dy) / point_r if dy != 0 else 1  # Avoid division by zero
+                step_list = np.arange(0, dy, step_size) if dy != 0 else np.zeros(point_r)
+                step_dy = point_yy[i] + np.array(step_list, dtype = np.int64)
+                step_dx = point_xx[i] + np.zeros(len(step_list), dtype = np.int64)
             else:
-                step_size = dx / point_r 
-                step_list = np.arange(0, dx, step_size)
-                step_dx = point_xx[i] + np.array(step_list, dtype = np.int64) 
-                step_dy = point_yy[i] + np.array((dy / dx) * step_list, dtype = np.int64)
+                # Handle non-vertical line
+                step_size = abs(dx) / point_r if dx != 0 else 1  # Avoid division by zero
+                step_list = np.arange(0, dx, step_size) if dx != 0 else np.zeros(point_r)
+                step_dx = point_xx[i] + np.array(step_list, dtype = np.int64)
+                # Avoid division by zero when calculating slope
+                step_dy = point_yy[i] + np.array((dy / dx if dx != 0 else 0) * step_list, dtype = np.int64)
             pixel_line_xx = np.append(pixel_line_xx, step_dx)
             pixel_line_yy = np.append(pixel_line_yy, step_dy)
         ###
@@ -477,10 +479,10 @@ class AlvaHmm(object):
         ### dilation_skeletonize +++
         from skimage.morphology import dilation, disk, square, skeletonize
         mmmD = dilation(chain_mmm_draft, disk(cell.node_r / 2))
-        bool_mmm = skeletonize(mmmD) 
+        bool_mmm = skeletonize(mmmD)
         ### dilation_skeletonize ---
         ### converting bool(True, False) into number(1, 0)
-        chain_mmm_fine = np.int64(bool_mmm) 
+        chain_mmm_fine = np.int64(bool_mmm)
         return (chain_mmm_fine)
         ########################################
 ###########################################################################
