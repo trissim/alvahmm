@@ -16,7 +16,12 @@ Home-made machinery
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+# Check if running in IPython
+try:
+    get_ipython().run_line_magic('matplotlib', 'inline')
+except NameError:
+    # Not running in IPython, so we don't need to set matplotlib inline
+    pass
 import time
 import sys
 import os
@@ -39,7 +44,7 @@ if __name__ == '__main__':
 author: Alvason Zhenhua Li
 date:   01/21/2016
 
-Home-made machinery for circle-packing 
+Home-made machinery for circle-packing
 '''
 AlvaColorCycle = ['blue', 'green', 'cyan'
                   , 'lightpink', 'magenta', 'yellow'
@@ -73,38 +78,38 @@ class AlvaCirclePacking(object):
         # galaxy_object
         cell.object_area = cell.raw_area[cell.raw_area > 0]
         cell.object_radii = (cell.object_area / np.pi)**(1.0/2)
-        cell.total_galaxy_object = len(cell.object_area) 
+        cell.total_galaxy_object = len(cell.object_area)
         # setting galaxy_area = 4 * total_circle_area
-        cell.galaxy_diameter = 2 * (4 * cell.object_area.sum() / np.pi)**(1.0/2) 
+        cell.galaxy_diameter = 2 * (4 * cell.object_area.sum() / np.pi)**(1.0/2)
         ### 1. initializing a random-distribution of all-object within the galaxy-area
-        for rn in range(cell.total_galaxy_object): 
-            cell.polar_angle[rn] = np.random.random() * (2 * np.pi) 
-            cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) * np.random.random() 
+        for rn in range(cell.total_galaxy_object):
+            cell.polar_angle[rn] = np.random.random() * (2 * np.pi)
+            cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) * np.random.random()
                                           - cell.sort_radii[rn])
-        ### 2. selecting big-circle as core (planet) 
+        ### 2. selecting big-circle as core (planet)
         cell.total_coreNum = int(0)
         cell.total_galaxy_asteroid = int(0)
         cell.total_galaxy_moon = int(0)
         for rn in range(cell.total_galaxy_object):
             if np.around(np.pi * (cell.sort_radii[rn])**2) <= cell.asteroid_size:
                 # building a asteroid belt around at the boundary of galaxy
-                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) * 
-                                              (1 - cell.belt_width * np.random.random()) 
-                                              + cell.sort_radii[rn]) 
+                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) *
+                                              (1 - cell.belt_width * np.random.random())
+                                              + cell.sort_radii[rn])
                 cell.total_galaxy_asteroid = cell.total_galaxy_asteroid + 1
             elif np.around(np.pi * (cell.sort_radii[rn])**2) >= cell.moon_size:
                 # counting total core
                 cell.total_coreNum = cell.total_coreNum + 1
-                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) 
+                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2)
                                               * (1 - 2*cell.belt_width) * np.random.random()
                                               - cell.sort_radii[rn])
             else:
                 # building moon-belt around at the boundary of galaxy
-                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2) 
-                                              * ((1 - cell.belt_width) - 2*cell.belt_width * np.random.random()) 
+                cell.polar_distance[rn] = abs((cell.galaxy_diameter / 2)
+                                              * ((1 - cell.belt_width) - 2*cell.belt_width * np.random.random())
                                               - cell.sort_radii[rn])
                 cell.total_galaxy_moon = cell.total_galaxy_moon + 1
-        # setting the top-cicle at the center of galaxy  
+        # setting the top-cicle at the center of galaxy
         cell.polar_distance[0] = 0.0
         cell.total_galaxy_planet = cell.total_coreNum
         cell.total_galaxy_star = cell.total_galaxy_object - cell.total_galaxy_asteroid
@@ -136,7 +141,7 @@ class AlvaCirclePacking(object):
         center_X = center_X - relative_x
         center_Y = center_Y - relative_y
         ## moving inside-circle out of the core
-        # the easy way to detecting inside-circle is in Polar-unit 
+        # the easy way to detecting inside-circle is in Polar-unit
         polar_angle = xyPolar(center_X, center_Y)[0]
         polar_distance = xyPolar(center_X, center_Y)[1]
         record_inside_rn = []
@@ -147,24 +152,24 @@ class AlvaCirclePacking(object):
                 polar_distance[rn] = (raw_radii[core] + raw_radii[rn])
                 if far_out == True:
                     record_inside_rn.append(rn)
-        ## moving the newly updated galaxy so that core-cricle is returned to previous-location  
+        ## moving the newly updated galaxy so that core-cricle is returned to previous-location
         center_X = polarXY(polar_angle, polar_distance)[0]
         center_Y = polarXY(polar_angle, polar_distance)[1]
         center_X = center_X + relative_x
         center_Y = center_Y + relative_y
         polar_angle = xyPolar(center_X, center_Y)[0]
-        polar_distance = xyPolar(center_X, center_Y)[1] 
+        polar_distance = xyPolar(center_X, center_Y)[1]
         ## out_distance
         for rn in record_inside_rn:
             polar_angle[rn] = np.random.random() * (2 * np.pi)
-            polar_distance[rn] = abs((cell.galaxy_diameter / 2) 
-                                     * ((1 - cell.belt_width) - cell.belt_width * np.random.random()) 
+            polar_distance[rn] = abs((cell.galaxy_diameter / 2)
+                                     * ((1 - cell.belt_width) - cell.belt_width * np.random.random())
                                      - raw_radii[rn])
             # in case of no asteroid and moon
             if cell.asteroid_size == 0 or cell.moon_size == 1:
-                polar_distance[rn] = abs((cell.galaxy_diameter / 2) 
-                                         * (1 - 2*cell.belt_width * np.random.random()) 
-                                         - raw_radii[rn])                
+                polar_distance[rn] = abs((cell.galaxy_diameter / 2)
+                                         * (1 - 2*cell.belt_width * np.random.random())
+                                         - raw_radii[rn])
         ## returning
         cell.polar_angle[0:cell.total_galaxy_star] = polar_angle
         cell.polar_distance[0:cell.total_galaxy_star] = polar_distance
@@ -186,9 +191,9 @@ class AlvaCirclePacking(object):
         relative_y = center_Y[core]
         center_X = center_X - relative_x
         center_Y = center_Y - relative_y
-        # the easy way to detect circle is in Polar-unit 
+        # the easy way to detect circle is in Polar-unit
         polar_angle = xyPolar(center_X, center_Y)[0]
-        polar_distance = xyPolar(center_X, center_Y)[1]    
+        polar_distance = xyPolar(center_X, center_Y)[1]
         # detecting and recording current neighbor of the core
         nnnCore = []
         for rn in range(total_circle):
@@ -216,16 +221,16 @@ class AlvaCirclePacking(object):
                 # out-of-the-loop
                 if (overlap == True):
                     polar_angle[nnnCore[i]] = polar_angle[core + 1]
-                    polar_distance[nnnCore[i]] = polar_distance[core + 1]     
+                    polar_distance[nnnCore[i]] = polar_distance[core + 1]
             # testing
             #polar_angle[nnnCore[i]] = i*(2*np.pi)/total_neighbor
-        ## moving the newly updated galaxy so that core-cricle is returned to previous-location  
+        ## moving the newly updated galaxy so that core-cricle is returned to previous-location
         center_X = polarXY(polar_angle, polar_distance)[0]
         center_Y = polarXY(polar_angle, polar_distance)[1]
         center_X = center_X + relative_x
         center_Y = center_Y + relative_y
         polar_angle = xyPolar(center_X, center_Y)[0]
-        polar_distance = xyPolar(center_X, center_Y)[1] 
+        polar_distance = xyPolar(center_X, center_Y)[1]
         ## returning
         cell.polar_angle[0:cell.total_galaxy_star] = polar_angle
         cell.polar_distance[0:cell.total_galaxy_star] = polar_distance
@@ -241,11 +246,11 @@ class AlvaCirclePacking(object):
         if raw_radii is None:
             raw_radii = cell.sort_radii[0:cell.total_galaxy_star]
         overlap = False
-        total_neighbor = len(nnnCore)  
+        total_neighbor = len(nnnCore)
         polar_A = np.zeros(total_neighbor)
-        polar_D = np.zeros(total_neighbor) 
+        polar_D = np.zeros(total_neighbor)
         ortho_X = np.zeros(total_neighbor)
-        ortho_Y = np.zeros(total_neighbor)   
+        ortho_Y = np.zeros(total_neighbor)
         for i in range(total_neighbor):
             polar_A[i] = np.copy(polar_angle[nnnCore[i]])
             polar_D[i] = np.copy(polar_distance[nnnCore[i]])
@@ -256,9 +261,9 @@ class AlvaCirclePacking(object):
         relative_y0 = polar_to_xy(polar_angle[detected_rn], polar_distance[detected_rn])[1]
         ortho_X = ortho_X - relative_x0
         ortho_Y = ortho_Y - relative_y0
-        # the easy way to detect circle is in Polar-unit 
+        # the easy way to detect circle is in Polar-unit
         polar_A = xyPolar(ortho_X, ortho_Y)[0]
-        polar_D = xyPolar(ortho_X, ortho_Y)[1] 
+        polar_D = xyPolar(ortho_X, ortho_Y)[1]
         # detecting
         # overlap_time > 1 for avoiding self-detected
         overlap_time = 0
@@ -266,8 +271,8 @@ class AlvaCirclePacking(object):
             if (polar_D[i] < (raw_radii[detected_rn] + raw_radii[nnnCore[i]])):
                 overlap_time = overlap_time + 1
         if (overlap_time > 1):
-            overlap = True    
-        return (overlap) 
+            overlap = True
+        return (overlap)
     ###------------------------
     # patching circle by original-index of raw_radii (sort_radii) so that colorings are consistent
     # patching circle with coloring
@@ -286,14 +291,14 @@ class AlvaCirclePacking(object):
         sort_radii = cell.sort_radii
         raw_radii_index = cell.raw_radii_index
         # patching circle by original-index of raw_radii so that coloring are consistent
-        raw_radii_index_index = np.argsort(raw_radii_index) 
+        raw_radii_index_index = np.argsort(raw_radii_index)
         circle_patch = []
         for xn, yn, rn in zip(center_X[raw_radii_index_index]
                               , center_Y[raw_radii_index_index]
                               , sort_radii[raw_radii_index_index]):
             circle = mpl.patches.Circle((xn, yn), rn)
-            circle_patch.append(circle) 
-        # coloring 
+            circle_patch.append(circle)
+        # coloring
         color_cycle = mpl.colors.ListedColormap(AlvaColorCycle, 'indexed')
         pCircle = mpl.collections.PatchCollection(circle_patch, cmap = color_cycle
                                                   , alpha = color_alpha, linewidths = line_width)
@@ -322,10 +327,10 @@ def xy_to_polar(x, y):
     if (x == 0.0 and y == 0.0):
         distance = 0.0
         angle = 0.0
-    else: 
+    else:
         distance = (x**2 + y**2)**(1.0/2)
         angle = np.arccos(x/distance)
-    if (y < 0.0): 
+    if (y < 0.0):
         angle = -angle
     return (angle, distance)
 #

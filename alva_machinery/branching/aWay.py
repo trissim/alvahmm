@@ -12,13 +12,18 @@ author: Alvason Zhenhua Li
 date:   from 11/21/2016 to 02/27/2018
 Home-made machinery
 '''
-### 02/27/2018, updated for using AlvaHmm_class 
+### 02/27/2018, updated for using AlvaHmm_class
 ###############################################
 ### open_package +++
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+# Check if running in IPython
+try:
+    get_ipython().run_line_magic('matplotlib', 'inline')
+except NameError:
+    # Not running in IPython, so we don't need to set matplotlib inline
+    pass
 import time
 import sys
 import os
@@ -89,7 +94,7 @@ def part_connect_way(connect_xx, connect_yy):
     y_range = yy.max() - yy.min()
     total_scan_pixel = int(y_range * x_range / 2)
     ### nearest_neighbor from low_priority (dx = 0, dy = -1) to high_priority (dx = 1, dy = 0)
-    dx = [0, 0, 1, 1, 1] 
+    dx = [0, 0, 1, 1, 1]
     dy = [-1, 1, -1, 1, 0]
     dr = [1, 1, 2**(0.5), 2**(0.5), 1]
     total_neighbor = len(dx)
@@ -113,11 +118,11 @@ def part_connect_way(connect_xx, connect_yy):
                         y_next = yn
                         r_next = dr[n]
                 ### checking connection
-                if (x_next == way_xx[-1] or x_next == way_xx[-1] + 1): 
+                if (x_next == way_xx[-1] or x_next == way_xx[-1] + 1):
                     way_xx.append(x_next)
                     way_yy.append(y_next)
                     way_rr.append(r_next)
-                    ### marking checked pixel 
+                    ### marking checked pixel
                     img[y_next][x_next] = 2
             ### only append connection_case (avoiding '[]' non_connection_case)
             if way_rr != []:
@@ -145,7 +150,7 @@ def connect_way(chain_mmm_fine,
     total_pixel_y, total_pixel_x = mmm.shape
     ### image_size ---
     if line_length_min is None:
-        line_length_min = 16 
+        line_length_min = 16
     if free_zone_from_y0 is None:
         free_zone_from_y0 = 4
     ### avoiding boundary +++
@@ -173,7 +178,7 @@ def connect_way(chain_mmm_fine,
     ### find the tip of connect_way +++ ###
     tip_xx = []
     tip_yy = []
-    ### 
+    ###
     for i in range(len(tree_xx)):
         ###
         connect_xx = tree_xx[i]
@@ -190,17 +195,17 @@ def connect_way(chain_mmm_fine,
     root_tree_xx = []
     root_tree_yy = []
     for i in range(len(tree_yy)):
-        y_min_index = np.argmax(tree_yy[i]) 
+        y_min_index = np.argmax(tree_yy[i])
         if (tree_yy[i].max() >= free_zone_from_y0):
             connect_xx = tree_xx[i]
-            connect_yy = tree_yy[i]  
+            connect_yy = tree_yy[i]
             root_tree_xx.append(connect_xx)
             root_tree_yy.append(connect_yy)
     ### filter out tip ---
     ### find the tip of connect_way +++ ###
     root_tip_xx = []
     root_tip_yy = []
-    ### 
+    ###
     for i in range(len(root_tree_xx)):
         ###
         connect_xx = root_tree_xx[i]
@@ -212,7 +217,7 @@ def connect_way(chain_mmm_fine,
     ###
     root_tip_xx = np.asarray(root_tip_xx)
     root_tip_yy = np.asarray(root_tip_yy)
-    ### find the tip of connect_way --- 
+    ### find the tip of connect_way ---
     return(root_tree_yy,
            root_tree_xx,
            root_tip_yy,

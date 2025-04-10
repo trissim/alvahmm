@@ -27,7 +27,12 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+# Check if running in IPython
+try:
+    get_ipython().run_line_magic('matplotlib', 'inline')
+except NameError:
+    # Not running in IPython, so we don't need to set matplotlib inline
+    pass
 import time
 import sys
 import os
@@ -53,7 +58,7 @@ Home-made machinery for stitching large imaging dataset
 def pd_print(data, width = None, column = None, row = None):
     ## setting the display of pd.DataFrame
     if width is None: width = 100
-    if column is None: column = 10 
+    if column is None: column = 10
     if row is None: row = 10
     pd.set_option('display.max_colwidth', width)
     pd.set_option('display.max_columns', column)
@@ -174,8 +179,8 @@ class timeWatcher(object):
         cell.start_time = time.time()
     ###
     def progressBar(cell, starting , current_step, stopping):
-        progressing = float(current_step - starting) / (stopping - starting) 
-        clear_output(wait = True) 
+        progressing = float(current_step - starting) / (stopping - starting)
+        clear_output(wait = True)
         current_time = time.time()
         print('[{:6.6f} second {:} {:}% {:}]'.format(current_time - cell.start_time
                                               , int(10 * progressing) * '--'
@@ -190,13 +195,13 @@ class timeWatcher(object):
         return total_time
 ### time-watching and progress-bar ---
 
-if __name__ == '__main__':   
+if __name__ == '__main__':
     timing = timeWatcher()
     for i in range(9):
         timing.progressBar(0, i, 8)
         time.sleep(0.3)
         print(i)
-    timing.runTime()    
+    timing.runTime()
 
 
 # ## iWatcher of looping
@@ -219,7 +224,7 @@ class progressBar(object):
         cell.new_i = 0
         cell.max_i = total_i
         cell.start_time = time.time()
-        cell.total_time = 0   
+        cell.total_time = 0
         cell.bar_width = 20
 
     def update(cell):
@@ -234,7 +239,7 @@ class progressBar(object):
         if cell.new_i >= cell.max_i:
             sys.stdout.write(', total_time = {:}'.format(cell.time_format(cell.total_time)))
             sys.stdout.write('\n')
-            sys.stdout.flush() 
+            sys.stdout.flush()
 
     def time_format(cell, _time):
         if (_time > 60):
@@ -242,7 +247,7 @@ class progressBar(object):
         else:
             time_string = str(_time) + ' (second)'
         return time_string
-###      
+###
 def generator_on_the_fly(bar_class, clear_display = False):
     def bbb(loop_list):
         total_i = len(loop_list)
@@ -256,17 +261,17 @@ def generator_on_the_fly(bar_class, clear_display = False):
 ###
 iWatcher = generator_on_the_fly(progressBar)
 ###
-if __name__ == '__main__': 
+if __name__ == '__main__':
     ###
     iWatcher = generator_on_the_fly(progressBar, clear_display = False)
     for k in range(9):
-        for i in iWatcher(range(3)): 
+        for i in iWatcher(range(3)):
             #print('\n', i)
             time.sleep(0.2)
     ###
     iWatcher = generator_on_the_fly(progressBar, clear_display = True)
     for k in range(9):
-        for i in iWatcher(range(3)): 
+        for i in iWatcher(range(3)):
             print('\n', i)
             time.sleep(0.2)
 
