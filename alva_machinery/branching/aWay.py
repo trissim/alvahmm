@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 # Check if running in IPython
 try:
     get_ipython().run_line_magic('matplotlib', 'inline')
-except NameError:
+except (NameError, AttributeError):
     # Not running in IPython, so we don't need to set matplotlib inline
     pass
 import time
